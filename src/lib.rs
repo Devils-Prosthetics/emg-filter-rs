@@ -55,7 +55,7 @@ struct Filter2nd {
 
 impl Filter2nd {
     fn init(filter_type: FilterType, sample_frequency: SampleFrequency) -> Self {
-        let mut states = [0f32; 2];
+        let states = [0f32; 2];
         let mut num = [0f32; 3];
         let mut den = [0f32; 3];
 
@@ -114,7 +114,7 @@ struct Filter4th {
 
 impl Filter4th {
     fn init(sample_frequency: SampleFrequency, hum_frequency: NotchFrequency) -> Self {
-        let mut states = [0f32; 4];
+        let states = [0f32; 4];
         let mut num = [0f32; 6];
         let mut den = [0f32; 6];
         let mut gain: f32 = 0.0;
@@ -200,10 +200,10 @@ impl EMGFilters {
     ) -> Self {
         let mut bypass_enabled = true;
 
-        if (((sample_frequency == SampleFrequency::Hz500)
+        if ((sample_frequency == SampleFrequency::Hz500)
             || (sample_frequency == SampleFrequency::Hz1000))
             && ((notch_frequency == NotchFrequency::Hz50)
-                || (notch_frequency == NotchFrequency::Hz60)))
+                || (notch_frequency == NotchFrequency::Hz60))
         {
             bypass_enabled = false;
         }
@@ -220,12 +220,12 @@ impl EMGFilters {
 
     pub fn update(&mut self, input_value: f32) -> f32 {
         let mut output: f32 = 0.0;
-        if (self.bypass_enabled) {
+        if self.bypass_enabled {
             output = input_value;
         }
 
         // first notch filter
-        if (self.notch_filter_enabled) {
+        if self.notch_filter_enabled {
             // output = NTF.update(inputValue);
             output = self.ahf.update(input_value);
         } else {
@@ -234,12 +234,12 @@ impl EMGFilters {
         }
 
         // second low pass filter
-        if (self.lowpass_filter_enabled) {
+        if self.lowpass_filter_enabled {
             output = self.lpf.update(output);
         }
 
         // third high pass filter
-        if (self.highpass_filter_enabled) {
+        if self.highpass_filter_enabled {
             output = self.hpf.update(output);
         }
         output
