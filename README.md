@@ -16,5 +16,5 @@ emg-filter-rs = { git = "https://github.com/Devils-Prosthetics/emg-filter-rs" }
 ```
 
 ## Differences from [EMGFilters](https://github.com/oymotion/EMGFilters) library by OYMotion
-It fixes issues, when used with multiple instances [#7](https://github.com/oymotion/EMGFilters/issues/7)
-It doesn't round from float to int multiple times unnecessarily, as a result, it should be more accurate.
+* It fixes issues, when used with multiple instances [#7](https://github.com/oymotion/EMGFilters/issues/7).
+* It doesn't round from float to int multiple times unnecessarily, as a result, it should be more accurate.
