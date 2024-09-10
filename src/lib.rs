@@ -1,3 +1,6 @@
+#![no_std]
+use core::prelude::v1::derive;
+
 const LPF_NUMERATOR_COEFFICIENT: [[f32; 3]; 2] =
     [[0.3913, 0.7827, 0.3913], [0.1311, 0.2622, 0.1311]];
 
