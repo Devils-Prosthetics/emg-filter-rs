@@ -54,7 +54,7 @@ struct Filter2nd {
 }
 
 impl Filter2nd {
-    fn init(filter_type: FilterType, sample_frequency: SampleFrequency) -> Self {
+    fn new(filter_type: FilterType, sample_frequency: SampleFrequency) -> Self {
         let states = [0f32; 2];
         let mut num = [0f32; 3];
         let mut den = [0f32; 3];
@@ -113,7 +113,7 @@ struct Filter4th {
 }
 
 impl Filter4th {
-    fn init(sample_frequency: SampleFrequency, hum_frequency: NotchFrequency) -> Self {
+    fn new(sample_frequency: SampleFrequency, hum_frequency: NotchFrequency) -> Self {
         let states = [0f32; 4];
         let mut num = [0f32; 6];
         let mut den = [0f32; 6];
@@ -180,6 +180,11 @@ impl Filter4th {
     }
 }
 
+// brief EMGFilter provides an anti-hum notch filter to filter out 50HZ or
+//       60HZ power line noise, a lowpass filter to filter out signals above
+//       150HZ, and a highpass filter to filter out noise below 20HZ;
+//       You can turn on or off these filters by the init function.
+// remark Input frequencies of 500HZ and 1000HZ are supported only!
 pub struct EMGFilters {
     bypass_enabled: bool,
     notch_filter_enabled: bool,
@@ -191,7 +196,7 @@ pub struct EMGFilters {
 }
 
 impl EMGFilters {
-    pub fn init(
+    pub fn new(
         sample_frequency: SampleFrequency,
         notch_frequency: NotchFrequency,
         enable_notch_filter: bool,
@@ -212,9 +217,9 @@ impl EMGFilters {
             notch_filter_enabled: enable_notch_filter,
             lowpass_filter_enabled: enable_lowpass_filter,
             highpass_filter_enabled: enable_highpass_filter,
-            lpf: Filter2nd::init(FilterType::LowPass, sample_frequency),
-            hpf: Filter2nd::init(FilterType::HighPass, sample_frequency),
-            ahf: Filter4th::init(sample_frequency, notch_frequency),
+            lpf: Filter2nd::new(FilterType::LowPass, sample_frequency),
+            hpf: Filter2nd::new(FilterType::HighPass, sample_frequency),
+            ahf: Filter4th::new(sample_frequency, notch_frequency),
         }
     }
 
@@ -242,6 +247,55 @@ impl EMGFilters {
         if self.highpass_filter_enabled {
             output = self.hpf.update(output);
         }
+
         output
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn testing_lower() {
+        let mut emg_filter = EMGFilters::new(
+            SampleFrequency::Hz1000,
+            NotchFrequency::Hz50,
+            true,
+            true,
+            true,
+        );
+        let val: isize = 0;
+
+        for i in 0..64 {
+            let data_after_filter = emg_filter.update(val as f32);
+            assert_eq!(data_after_filter as isize, 0);
+        }
+    }
+
+    #[test]
+    fn testing_higher() {
+        let mut emg_filter = EMGFilters::new(
+            SampleFrequency::Hz1000,
+            NotchFrequency::Hz50,
+            true,
+            true,
+            true,
+        );
+        let val: isize = 1023;
+
+        let expected = [
+            108, 386, 611, 628, 514, 370, 247, 158, 96, 51, 16, -12, -37, -59, -81, -102, -124,
+            -147, -169, -189, -206, -219, -226, -227, -220, -207, -186, -161, -132, -101, -71, -43,
+            -19, 0, 10, 16, 14, 7, -3, -16, -30, -43, -52, -57, -57, -51, -40, -25, -7, 12, 31, 48,
+            61, 70, 73, 70, 61, 48, 32, 14, -3, -19, -32, -40,
+        ];
+        let mut values = [0i32; 64];
+
+        for i in 0..64 {
+            values[i] = emg_filter.update(val as f32) as i32;
+        }
+
+        assert_eq!(values, expected);
     }
 }
