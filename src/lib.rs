@@ -120,7 +120,7 @@ impl Filter4th {
         let states = [0f32; 4];
         let mut num = [0f32; 6];
         let mut den = [0f32; 6];
-        let mut gain: f32 = 0.0;
+        let gain: f32;
 
         match hum_frequency {
             NotchFrequency::Hz50 => match sample_frequency {
@@ -189,7 +189,6 @@ impl Filter4th {
 //       You can turn on or off these filters by the init function.
 // remark Input frequencies of 500HZ and 1000HZ are supported only!
 pub struct EMGFilters {
-    bypass_enabled: bool,
     notch_filter_enabled: bool,
     lowpass_filter_enabled: bool,
     highpass_filter_enabled: bool,
@@ -206,17 +205,7 @@ impl EMGFilters {
         enable_lowpass_filter: bool,
         enable_highpass_filter: bool,
     ) -> Self {
-        let mut bypass_enabled = true;
-
-        if ((sample_frequency == SampleFrequency::Hz500)
-            || (sample_frequency == SampleFrequency::Hz1000))
-            && ((notch_frequency == NotchFrequency::Hz50)
-                || (notch_frequency == NotchFrequency::Hz60))
-        {
-            bypass_enabled = false;
-        }
         Self {
-            bypass_enabled,
             notch_filter_enabled: enable_notch_filter,
             lowpass_filter_enabled: enable_lowpass_filter,
             highpass_filter_enabled: enable_highpass_filter,
@@ -227,10 +216,7 @@ impl EMGFilters {
     }
 
     pub fn update(&mut self, input_value: f32) -> f32 {
-        let mut output: f32 = 0.0;
-        if self.bypass_enabled {
-            output = input_value;
-        }
+        let mut output: f32;
 
         // first notch filter
         if self.notch_filter_enabled {
@@ -270,7 +256,7 @@ mod tests {
         );
         let val: isize = 0;
 
-        for i in 0..64 {
+        for _i in 0..64 {
             let data_after_filter = emg_filter.update(val as f32);
             assert_eq!(data_after_filter as isize, 0);
         }
