@@ -2,5 +2,7 @@
 name = "emg-filter-rs"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "This is an implementation of the EMGFilters library by OYMotion in Rust."
 
 [dependencies]
